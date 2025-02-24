@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Verify Transactions</title>
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .transaction-list {
+            margin: 20px auto;
+            width: 50%;
+            background: #222;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel - Verify Transactions</h1>
+        <div id="transactions" class="transaction-list"></div>
+    </div>
+
+    <script>
+        function loadTransactions() {
+            fetch('https://panel-production-463f.up.railway.app/get-payments')
+                .then(response => response.json())
+                .then(data => {
+                    const transactionContainer = document.getElementById('transactions');
+                    transactionContainer.innerHTML = '';
+
+                    data.forEach(payment => {
+                        if (!payment.verified) {
+                            const div = document.createElement('div');
+                            div.innerHTML = `<p>Transaction ID: ${payment.transactionId} <button onclick="verifyTransaction('${payment.transactionId}')">Verify</button></p>`;
+                            transactionContainer.appendChild(div);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function verifyTransaction(transactionId) {
+            fetch('https://panel-production-463f.up.railway.app/verify-transaction', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ transactionId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                loadTransactions();
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        loadTransactions();
+        setInterval(loadTransactions, 5000); // Refresh transactions every 5 seconds
+    </script>
+</body>
+</html>
